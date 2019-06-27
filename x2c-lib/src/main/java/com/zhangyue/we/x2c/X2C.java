@@ -61,10 +61,9 @@ public class X2C {
         IViewCreator creator = sSparseArray.get(layoutId);
         if (creator == null) {
             try {
-                int group = generateGroupId(layoutId);
                 String layoutName = context.getResources().getResourceName(layoutId);
                 layoutName = layoutName.substring(layoutName.lastIndexOf("/") + 1);
-                String clzName = "com.zhangyue.we.x2c.X2C" + group + "_" + layoutName;
+                String clzName = "com.zhangyue.we.x2c.X2C0_" + layoutName;
                 creator = (IViewCreator) context.getClassLoader().loadClass(clzName).newInstance();
             } catch (Exception e) {
                 e.printStackTrace();
@@ -85,9 +84,5 @@ public class X2C {
         public View createView(Context context) {
             return null;
         }
-    }
-
-    private static int generateGroupId(int layoutId) {
-        return layoutId >> 24;
     }
 }

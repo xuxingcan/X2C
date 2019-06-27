@@ -11,7 +11,6 @@ import org.xml.sax.helpers.DefaultHandler;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
-import java.io.IOException;
 import java.net.URLDecoder;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -29,20 +28,8 @@ public class LayoutManager {
     private static LayoutManager sInstance;
     private File mRootFile;
     private String mPackageName;
-    private int mGroupId;
     private Filer mFiler;
-    /**
-     * key is layoutId, value is javaName
-     */
-    private HashMap<Integer, String> mMap;
-    /**
-     * key is layoutName,value is layoutId
-     */
-    private HashMap<String, Integer> mRJava;
-    /**
-     * key is layoutName,value is layoutId
-     */
-    private HashMap<Integer, String> mRJavaId;
+    private HashMap<String, String> mMap;
     /**
      * key is styleName,value is style
      */
@@ -64,7 +51,6 @@ public class LayoutManager {
 
     private LayoutManager() {
         mMap = new HashMap<>();
-        mRJavaId = new HashMap<>();
         mTranslateMap = new HashMap<>();
         mLayouts = new HashMap<>();
     }
@@ -85,17 +71,7 @@ public class LayoutManager {
         this.mFiler = filer;
         this.mRootFile = getRootFile();
         this.findPackageName();
-        this.mRJava = getR();
         this.mAttrs = new Attr2FuncReader(new File(mRootFile, "X2C_CONFIG.xml")).parse();
-    }
-
-    public void setGroupId(int groupId) {
-        this.mGroupId = groupId;
-    }
-
-
-    public Integer getLayoutId(String layoutName) {
-        return mRJava.get(layoutName);
     }
 
     public String translate(String layoutName) {
@@ -103,22 +79,21 @@ public class LayoutManager {
             mLayouts = scanLayouts(mRootFile);
         }
         String fileName = null;
-        Integer layoutId = getLayoutId(layoutName);
-        if (mMap.containsKey(layoutId)) {
-            fileName = mMap.get(layoutId);
+        if (mMap.containsKey(layoutName)) {
+            fileName = mMap.get(layoutName);
         } else {
             ArrayList<File> layouts = mLayouts.get(layoutName);
             if (layouts != null) {
                 Util.sortLayout(layouts);
                 ArrayList<String> javaNames = new ArrayList<>();
                 for (File file : layouts) {
-                    LayoutReader reader = new LayoutReader(file, layoutName, mFiler, mPackageName, mGroupId);
+                    LayoutReader reader = new LayoutReader(file, layoutName, mFiler, mPackageName);
                     fileName = reader.parse();
                     javaNames.add(fileName);
-                    mMap.put(layoutId, fileName);
+                    mMap.put(layoutName, fileName);
                 }
 
-                MapWriter mapWriter = new MapWriter(mGroupId, layouts, javaNames, mFiler);
+                MapWriter mapWriter = new MapWriter(layouts, javaNames, mFiler);
                 mapWriter.write();
             }
         }
@@ -254,70 +229,6 @@ public class LayoutManager {
             }
         }
 
-    }
-
-    private HashMap<String, Integer> getR() {
-        HashMap<String, Integer> map = new HashMap<>();
-        File rFile = getRFile();
-        BufferedReader reader = null;
-        try {
-            reader = new BufferedReader(new FileReader(rFile));
-            String line;
-            boolean layoutStarted = false;
-            while ((line = reader.readLine()) != null) {
-                if (line.contains("public static final class layout")) {
-                    layoutStarted = true;
-                } else if (layoutStarted) {
-                    if (line.contains("}")) {
-                        break;
-                    } else {
-                        line = line.substring(line.indexOf("int") + 3, line.indexOf(";"))
-                                .replaceAll(" ", "").trim();
-                        String[] lineSplit = line.split("=");
-                        int id = Integer.decode(lineSplit[1]);
-                        map.put(lineSplit[0], id);
-                        mRJavaId.put(id, lineSplit[0]);
-                    }
-                }
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        } finally {
-            Util.close(reader);
-        }
-        return map;
-    }
-
-    private File getRFile() {
-        String sep = File.separator;
-        File rFile = null;
-        try {
-            JavaFileObject filerSourceFile = mFiler.createSourceFile("test");
-            String path = filerSourceFile.toUri().getPath();
-            String basePath = path.replace("apt", "r").replace("test.java", "");
-            rFile = new File(basePath, mPackageName.replace(".", sep) + sep + "R.java");
-            if (!rFile.exists()) {
-                basePath = path.substring(0, path.indexOf("apt"));
-                String javaFilePath = path.substring(path.indexOf("apt") + "apt".length());
-                File temp = new File(new File(new File(basePath).getParentFile(), "not_namespaced_r_class_sources"), javaFilePath).getParentFile();
-                File[] files = temp.listFiles();
-                if (files != null) {
-                    for (File dir : files) {
-                        File file = new File(dir, "r" + sep + mPackageName.replace(".", sep) + sep + "R.java");
-                        if (file.exists()) {
-                            rFile = file;
-                            break;
-                        }
-                    }
-                }
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        if (rFile == null || !rFile.exists()) {
-            Log.e("X2C not find R.java!!!");
-        }
-        return rFile;
     }
 
     public HashMap<String, Attr> getAttrs() {

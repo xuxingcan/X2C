@@ -13,7 +13,6 @@ import javax.annotation.processing.SupportedAnnotationTypes;
 import javax.annotation.processing.SupportedSourceVersion;
 import javax.lang.model.SourceVersion;
 import javax.lang.model.element.Element;
-import javax.lang.model.element.PackageElement;
 import javax.lang.model.element.TypeElement;
 
 /**
@@ -23,7 +22,6 @@ import javax.lang.model.element.TypeElement;
 @SupportedAnnotationTypes("com.zhangyue.we.x2c.ano.Xml")
 public class XmlProcessor extends AbstractProcessor {
 
-    private int mGroupId = 0;
     private LayoutManager mLayoutMgr;
 
     @Override
@@ -47,10 +45,6 @@ public class XmlProcessor extends AbstractProcessor {
         }
 
         for (String name : layouts) {
-            if (mGroupId == 0 && mLayoutMgr.getLayoutId(name) != null) {
-                mGroupId = (mLayoutMgr.getLayoutId(name) >> 24);
-            }
-            mLayoutMgr.setGroupId(mGroupId);
             mLayoutMgr.translate(name);
         }
 

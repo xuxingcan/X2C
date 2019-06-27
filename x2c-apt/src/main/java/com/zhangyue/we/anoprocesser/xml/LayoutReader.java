@@ -26,12 +26,12 @@ public class LayoutReader {
     private String mPackageName;
     private File mFile;
 
-    public LayoutReader(File file, String name, Filer filer, String packageName, int groupId) {
+    public LayoutReader(File file, String name, Filer filer, String packageName) {
         mFile = file;
         mFiler = filer;
         mPackageName = packageName;
         mLayoutName = name;
-        mName = getJavaName(groupId, name);
+        mName = getJavaName(name);
     }
 
     public String parse() {
@@ -93,7 +93,7 @@ public class LayoutReader {
         }
 
         private View createView(String name, Attributes attributes) {
-            if (name.equals("layout") || name.equals("data") || name.equals("variable")|| name.equals("import")) {
+            if (name.equals("layout") || name.equals("data") || name.equals("variable") || name.equals("import")) {
                 isDataBinding = true;
                 return null;
             }
@@ -108,8 +108,8 @@ public class LayoutReader {
     }
 
 
-    private String getJavaName(int groupId, String name) {
-        String retName = groupId + "_" + name;
+    private String getJavaName(String name) {
+        String retName = 0 + "_" + name;
         String[] ss = retName.split("_");
         StringBuilder stringBuilder = new StringBuilder("X2C");
         for (int i = 0; i < ss.length; i++) {

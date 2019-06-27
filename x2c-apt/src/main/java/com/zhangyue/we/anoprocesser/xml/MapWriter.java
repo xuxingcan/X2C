@@ -1,9 +1,9 @@
 package com.zhangyue.we.anoprocesser.xml;
 
 import com.squareup.javapoet.x2c.ClassName;
+import com.squareup.javapoet.x2c.JavaFile;
 import com.squareup.javapoet.x2c.MethodSpec;
 import com.squareup.javapoet.x2c.TypeSpec;
-import com.squareup.javapoet.x2c.JavaFile;
 import com.zhangyue.we.anoprocesser.Util;
 
 import java.io.File;
@@ -19,13 +19,11 @@ import javax.lang.model.element.Modifier;
  */
 public class MapWriter {
 
-    private int mGroupId;
     private ArrayList<File> mLayouts;
     private ArrayList<String> mJavaNames;
     private Filer mFiler;
 
-    MapWriter(int groupId, ArrayList<File> layouts, ArrayList<String> javaNames, Filer filer) {
-        this.mGroupId = groupId;
+    MapWriter(ArrayList<File> layouts, ArrayList<String> javaNames, Filer filer) {
         this.mLayouts = layouts;
         this.mJavaNames = javaNames;
         this.mFiler = filer;
@@ -73,7 +71,7 @@ public class MapWriter {
                 .build();
 
         String name = mLayouts.get(0).getName().substring(0, mLayouts.get(0).getName().indexOf("."));
-        TypeSpec typeSpec = TypeSpec.classBuilder(String.format("X2C%s_%s", mGroupId, name))
+        TypeSpec typeSpec = TypeSpec.classBuilder(String.format("X2C%s_%s", 0, name))
                 .addSuperinterface(ClassName.get("com.zhangyue.we.x2c", "IViewCreator"))
                 .addModifiers(Modifier.PUBLIC)
                 .addMethod(methodSpec)
